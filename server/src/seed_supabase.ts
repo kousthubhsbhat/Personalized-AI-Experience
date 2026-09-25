@@ -52,7 +52,7 @@ async function seedSupabase() {
 
   // 4. Seed Modules
   console.log('4. Inserting Pathway Modules...');
-  const modulesData = [
+  const modulesData: any[] = [
     {
       id: 'mod_101',
       pathway_id: pathwayId,
