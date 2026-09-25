@@ -51,7 +51,7 @@ export const PathwayDashboard: React.FC = () => {
 
   const avgMastery = skills.length > 0
     ? Math.round(skills.reduce((sum, s) => sum + s.mastery_score, 0) / skills.length)
-    : 70;
+    : 0;
 
   const handleOpenLesson = (mod: PathwayModule) => {
     setActiveLessonModule(mod);

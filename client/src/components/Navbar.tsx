@@ -63,7 +63,7 @@ export const Navbar: React.FC = () => {
 
   const avgMastery = skills.length > 0
     ? Math.round(skills.reduce((sum, s) => sum + s.mastery_score, 0) / skills.length)
-    : 78;
+    : 0;
 
   const avatarInitials = profile?.avatar_seed ||
     profile?.full_name?.split(' ').filter(Boolean).map(n => n[0]).join('').substring(0, 2).toUpperCase() ||

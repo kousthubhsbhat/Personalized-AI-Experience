@@ -176,11 +176,11 @@ export function generateStarterPathway(user: Profile, customSkills?: Record<stri
     ];
 
     skillsList = [
-      { id: `s_${user.username}_1`, user_id: user.id, skill_name: 'Agentic Tool Calling & ReAct', mastery_score: 85, last_updated: new Date().toISOString() },
-      { id: `s_${user.username}_2`, user_id: user.id, skill_name: 'Vector Memory & RAG Retrieval', mastery_score: 75, last_updated: new Date().toISOString() },
-      { id: `s_${user.username}_3`, user_id: user.id, skill_name: 'Google Gemini 2.5 Flash SDK', mastery_score: 90, last_updated: new Date().toISOString() },
-      { id: `s_${user.username}_4`, user_id: user.id, skill_name: 'Stateful Agent Coordination', mastery_score: 65, last_updated: new Date().toISOString() },
-      { id: `s_${user.username}_5`, user_id: user.id, skill_name: 'LLM Guardrails & Evals', mastery_score: 70, last_updated: new Date().toISOString() }
+      { id: `s_${user.username}_1`, user_id: user.id, skill_name: 'Agentic Tool Calling & ReAct', mastery_score: 0, last_updated: new Date().toISOString() },
+      { id: `s_${user.username}_2`, user_id: user.id, skill_name: 'Vector Memory & RAG Retrieval', mastery_score: 0, last_updated: new Date().toISOString() },
+      { id: `s_${user.username}_3`, user_id: user.id, skill_name: 'Google Gemini 2.5 Flash SDK', mastery_score: 0, last_updated: new Date().toISOString() },
+      { id: `s_${user.username}_4`, user_id: user.id, skill_name: 'Stateful Agent Coordination', mastery_score: 0, last_updated: new Date().toISOString() },
+      { id: `s_${user.username}_5`, user_id: user.id, skill_name: 'LLM Guardrails & Evals', mastery_score: 0, last_updated: new Date().toISOString() }
     ];
   } else if (lowerRole.includes('architect') || lowerRole.includes('cloud') || lowerRole.includes('platform')) {
     modules = [
@@ -217,11 +217,11 @@ export function generateStarterPathway(user: Profile, customSkills?: Record<stri
     ];
 
     skillsList = [
-      { id: `s_${user.username}_1`, user_id: user.id, skill_name: 'Distributed Cloud Architecture', mastery_score: 80, last_updated: new Date().toISOString() },
-      { id: `s_${user.username}_2`, user_id: user.id, skill_name: 'PostgreSQL RLS & Multitenancy', mastery_score: 75, last_updated: new Date().toISOString() },
-      { id: `s_${user.username}_3`, user_id: user.id, skill_name: 'Redis Pub/Sub & Event Streams', mastery_score: 70, last_updated: new Date().toISOString() },
-      { id: `s_${user.username}_4`, user_id: user.id, skill_name: 'Edge Functions & Serverless', mastery_score: 85, last_updated: new Date().toISOString() },
-      { id: `s_${user.username}_5`, user_id: user.id, skill_name: 'Observability & Telemetry', mastery_score: 65, last_updated: new Date().toISOString() }
+      { id: `s_${user.username}_1`, user_id: user.id, skill_name: 'Distributed Cloud Architecture', mastery_score: 0, last_updated: new Date().toISOString() },
+      { id: `s_${user.username}_2`, user_id: user.id, skill_name: 'PostgreSQL RLS & Multitenancy', mastery_score: 0, last_updated: new Date().toISOString() },
+      { id: `s_${user.username}_3`, user_id: user.id, skill_name: 'Redis Pub/Sub & Event Streams', mastery_score: 0, last_updated: new Date().toISOString() },
+      { id: `s_${user.username}_4`, user_id: user.id, skill_name: 'Edge Functions & Serverless', mastery_score: 0, last_updated: new Date().toISOString() },
+      { id: `s_${user.username}_5`, user_id: user.id, skill_name: 'Observability & Telemetry', mastery_score: 0, last_updated: new Date().toISOString() }
     ];
   } else {
     // Standard / Full-Stack AI Engineer
@@ -299,21 +299,21 @@ export function generateStarterPathway(user: Profile, customSkills?: Record<stri
     ];
 
     skillsList = [
-      { id: `s_${user.username}_1`, user_id: user.id, skill_name: 'React & TypeScript Architecture', mastery_score: 82, last_updated: new Date().toISOString() },
-      { id: `s_${user.username}_2`, user_id: user.id, skill_name: 'Node.js & Express API Design', mastery_score: 74, last_updated: new Date().toISOString() },
-      { id: `s_${user.username}_3`, user_id: user.id, skill_name: 'PostgreSQL & Database RLS', mastery_score: 68, last_updated: new Date().toISOString() },
-      { id: `s_${user.username}_4`, user_id: user.id, skill_name: 'Google Gemini 2.5 Flash SDK', mastery_score: 88, last_updated: new Date().toISOString() },
-      { id: `s_${user.username}_5`, user_id: user.id, skill_name: 'Distributed Cloud Systems', mastery_score: 60, last_updated: new Date().toISOString() }
+      { id: `s_${user.username}_1`, user_id: user.id, skill_name: 'React & TypeScript Architecture', mastery_score: 0, last_updated: new Date().toISOString() },
+      { id: `s_${user.username}_2`, user_id: user.id, skill_name: 'Node.js & Express API Design', mastery_score: 0, last_updated: new Date().toISOString() },
+      { id: `s_${user.username}_3`, user_id: user.id, skill_name: 'PostgreSQL & Database RLS', mastery_score: 0, last_updated: new Date().toISOString() },
+      { id: `s_${user.username}_4`, user_id: user.id, skill_name: 'Google Gemini 2.5 Flash SDK', mastery_score: 0, last_updated: new Date().toISOString() },
+      { id: `s_${user.username}_5`, user_id: user.id, skill_name: 'Distributed Cloud Systems', mastery_score: 0, last_updated: new Date().toISOString() }
     ];
   }
 
   // If custom initial skills provided from onboarding
   if (customSkills && Object.keys(customSkills).length > 0) {
-    skillsList = Object.entries(customSkills).map(([sName, rating], idx) => ({
+    skillsList = Object.entries(customSkills).map(([sName], idx) => ({
       id: `s_${user.username}_${idx + 1}`,
       user_id: user.id,
       skill_name: sName,
-      mastery_score: Math.min(100, Math.max(10, rating * 20)),
+      mastery_score: 0,
       last_updated: new Date().toISOString()
     }));
   }
@@ -770,10 +770,20 @@ export const api = {
           nextPending.status = 'in_progress';
         }
       }
-      // Boost skill score
+      // Boost skill mastery score dynamically on progression
       if (bundle.skills.length > 0) {
         const skillIdx = Math.min(modIndex >= 0 ? modIndex : 0, bundle.skills.length - 1);
-        bundle.skills[skillIdx].mastery_score = Math.min(100, bundle.skills[skillIdx].mastery_score + 8);
+        const targetScore = Math.max(scorePercentage, 80);
+        bundle.skills[skillIdx].mastery_score = Math.min(100, Math.max(bundle.skills[skillIdx].mastery_score, targetScore));
+        bundle.skills[skillIdx].last_updated = new Date().toISOString();
+
+        // Progressive growth across related competency skills
+        bundle.skills.forEach((s, idx) => {
+          if (idx !== skillIdx) {
+            s.mastery_score = Math.min(100, s.mastery_score + 15);
+            s.last_updated = new Date().toISOString();
+          }
+        });
       }
     }
 
@@ -977,10 +987,10 @@ export const api = {
       recipientName: bundle.profile.full_name,
       recipientEmail: bundle.profile.email,
       roleTitle: bundle.profile.target_role,
-      domain: 'AI & Full-Stack Systems Engineering',
-      issueDate: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-      masteryScore: 88,
-      modulesCompletedCount: bundle.pathway.modules?.filter(m => m.status === 'completed').length || 2,
+      masteryScore: bundle.skills.length > 0
+        ? Math.round(bundle.skills.reduce((a, b) => a + b.mastery_score, 0) / bundle.skills.length)
+        : 0,
+      modulesCompletedCount: bundle.pathway.modules?.filter(m => m.status === 'completed').length || 0,
       verificationHash: `sha256-${Math.random().toString(36).substring(2)}${Math.random().toString(36).substring(2)}`,
       badgeSkills: bundle.skills.map(s => s.skill_name)
     };
