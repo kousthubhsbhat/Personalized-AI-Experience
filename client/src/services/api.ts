@@ -336,6 +336,326 @@ export function generateStarterPathway(user: Profile, customSkills?: Record<stri
   return { pathway, skills: skillsList };
 }
 
+// ==============================================================================
+// Topic-Specific Adaptive Question Bank Generator with Multiple Question Types
+// ==============================================================================
+export function generateTopicQuestions(moduleTitle: string, targetRole: string, learnerName: string): QuizQuestion[] {
+  const lower = moduleTitle.toLowerCase();
+
+  // Topic 1: State Machines & Reactive Optimistic UI
+  if (lower.includes('state') || lower.includes('reactive') || lower.includes('optimistic')) {
+    return [
+      {
+        id: 'sm_q1',
+        question: `When implementing optimistic state updates for ${targetRole} workflows, what is the safest rollback protocol if the API server responds with an error (e.g. 409 Conflict)?`,
+        options: [
+          'Revert local state cache to the immutable snapshot captured prior to mutation and dispatch an error toast',
+          'Force reload the entire browser page immediately, dropping all unsaved form inputs',
+          'Overwrite the server database record with the stale local client state',
+          'Disable user interactions across the application for 60 seconds'
+        ],
+        correctIndex: 0,
+        explanation: 'Rolling back to the snapshot captured prior to optimistic dispatch guarantees transactional integrity without desynchronizing the client UI.',
+        questionType: 'Architecture Scenario'
+      },
+      {
+        id: 'sm_q2',
+        question: `In a deterministic finite state machine reducer: (state, event) => transitions[state]?.[event] || state; what is the architectural outcome if an unrecognized event is dispatched?`,
+        options: [
+          'The state machine throws an unhandled runtime exception and crashes',
+          'The state deterministically remains in its current valid state, preventing impossible transitions',
+          'The state variable mutates into undefined',
+          'The state resets to its initial registration state'
+        ],
+        correctIndex: 1,
+        explanation: 'Enforcing the fallback to current state ensures strict invariants where impossible state transitions are mathematically forbidden.',
+        questionType: 'Code Output Debug'
+      },
+      {
+        id: 'sm_q3',
+        question: `Why is request debouncing or throttling applied to rapid client state streams (e.g., search input / slider adjustments) before network dispatch?`,
+        options: [
+          'To compress the client JavaScript bundle size',
+          'To collapse burst inputs into a single network payload, preventing server thread exhaustion and rate-limiting',
+          'To bypass Cross-Origin Resource Sharing (CORS) preflight checks',
+          'To convert JSON payloads into binary streams'
+        ],
+        correctIndex: 1,
+        explanation: 'Debouncing collapses high-frequency mutations into a single network transaction, mitigating thundering herd spikes.',
+        questionType: 'System Design Tradeoff'
+      }
+    ];
+  }
+
+  // Topic 2: Database Design, PostgreSQL RLS & Security
+  if (lower.includes('postgres') || lower.includes('rls') || lower.includes('security') || lower.includes('database') || lower.includes('multitenan')) {
+    return [
+      {
+        id: 'rls_q1',
+        question: `In a PostgreSQL multitenant database with Row-Level Security enabled, how does CREATE POLICY "tenant_isolation" ON public.user_skills FOR SELECT USING (auth.uid() = user_id); enforce isolation?`,
+        options: [
+          'By inspecting client-side localStorage tokens inside the browser React tree',
+          'By evaluating the authenticated JWT claim auth.uid() directly inside the PostgreSQL query engine for every scanned row',
+          'By encrypting only the table column headers on disk',
+          'By converting all SELECT queries into GraphQL mutations'
+        ],
+        correctIndex: 1,
+        explanation: 'PostgreSQL RLS applies policy filters at the database kernel level based on JWT claims, preventing data leakage even if API code omits a WHERE clause.',
+        questionType: 'Security & RLS Analysis'
+      },
+      {
+        id: 'rls_q2',
+        question: `When executing high-frequency user skill telemetry queries against a 5,000,000 row table, which indexing configuration achieves O(log N) lookup latency?`,
+        options: [
+          'Sequential full-table scan with zero indexes',
+          'B-Tree compound index on (user_id, mastery_score DESC)',
+          'Storing raw records in unindexed JSON files on an S3 bucket',
+          'Dropping all primary key constraints'
+        ],
+        correctIndex: 1,
+        explanation: 'A B-Tree compound index on user_id and sort column yields logarithmic index scans rather than expensive O(N) sequential table scans.',
+        questionType: 'Algorithmic Complexity'
+      },
+      {
+        id: 'rls_q3',
+        question: `What is the primary architectural hazard of relying exclusively on application controller logic rather than database engine RLS for multitenant data isolation?`,
+        options: [
+          'Increased CSS parsing latency on mobile clients',
+          'A single omitted WHERE user_id = ... clause in any backend endpoint exposes tenant data to unauthorized access',
+          'SSL handshake certificate expiration',
+          'Node.js garbage collection running out of memory'
+        ],
+        correctIndex: 1,
+        explanation: 'Application-layer filtering is vulnerable to developer oversight during code changes; RLS provides defense-in-depth directly at the persistence tier.',
+        questionType: 'Architecture Scenario'
+      }
+    ];
+  }
+
+  // Topic 3: Distributed Caching & Event Streams
+  if (lower.includes('caching') || lower.includes('redis') || lower.includes('stream') || lower.includes('distributed') || lower.includes('pub/sub') || lower.includes('event')) {
+    return [
+      {
+        id: 'cache_q1',
+        question: `Which architectural mechanism prevents a 'Cache Stampede' (Thundering Herd) when a high-traffic cache key expires simultaneously across hundreds of concurrent workers?`,
+        options: [
+          'Distributed mutex locking (or probabilistic early refresh) so only one worker queries the database while others receive stale-while-revalidate data',
+          'Setting cache Time-To-Live (TTL) to 0 seconds globally',
+          'Disabling the Redis cluster and routing all queries synchronously to disk',
+          'Converting all database write operations into synchronous blocking locks'
+        ],
+        correctIndex: 0,
+        explanation: 'Distributed mutex locks and stale-while-revalidate patterns guarantee that only a single worker recomputes the expensive database query.',
+        questionType: 'Architecture Scenario'
+      },
+      {
+        id: 'cache_q2',
+        question: `When scaling real-time collaborative state across 10 independent Node.js server pods behind a load balancer, why is a Redis Pub/Sub backplane necessary?`,
+        options: [
+          'To compress WebSocket frames on the wire',
+          'To broadcast real-time mutation events across all server pods so clients connected to Pod A instantly receive updates from Pod B',
+          'To convert WebSocket TCP connections into HTTP long-polling',
+          'To generate static HTML pages at build time'
+        ],
+        correctIndex: 1,
+        explanation: 'A Redis Pub/Sub message broker links isolated server instances, enabling seamless multi-node event distribution.',
+        questionType: 'Code Output Debug'
+      },
+      {
+        id: 'cache_q3',
+        question: `What is the primary architectural advantage of Server-Sent Events (SSE) over full-duplex WebSockets for one-way streaming AI inference (e.g. Gemini responses)?`,
+        options: [
+          'SSE operates over standard HTTP/2 with native automatic reconnection and zero custom protocol framing overhead',
+          'SSE supports bidirectional binary streaming while WebSockets only support plain text',
+          'SSE disables all SSL/TLS encryption for higher throughput',
+          'SSE requires dedicated TCP gateway hardware'
+        ],
+        correctIndex: 0,
+        explanation: 'SSE provides lightweight, HTTP-compliant unidirectional streaming with automatic reconnection, ideal for AI token streaming.',
+        questionType: 'System Design Tradeoff'
+      }
+    ];
+  }
+
+  // Topic 4: Edge Computing, Serverless & AI Integration
+  if (lower.includes('edge') || lower.includes('serverless') || lower.includes('ingress') || lower.includes('gemini') || lower.includes('ai integration')) {
+    return [
+      {
+        id: 'edge_q1',
+        question: `When streaming Gemini LLM completions to client dashboards via globally distributed Edge Workers, why is Chunked ReadableStream preferred over awaiting full completion?`,
+        options: [
+          'It minimizes Time-To-First-Token (TTFT) to under 100ms, delivering immediate perceptual speed to the user',
+          'It completely eliminates token costs on Google Cloud',
+          'It encrypts the model weights on the client browser',
+          'It extends Edge execution timeouts to 24 hours'
+        ],
+        correctIndex: 0,
+        explanation: 'Streaming chunks via ReadableStream allows users to read synthesized tokens in real time rather than waiting for the entire batch to finish.',
+        questionType: 'Architecture Scenario'
+      },
+      {
+        id: 'edge_q2',
+        question: `What is the secure pattern for accessing API keys (e.g., GEMINI_API_KEY, Supabase Service Key) in Edge Functions?`,
+        options: [
+          'Hardcoding keys in client-side JavaScript bundles',
+          'Injecting encrypted environment secrets at Edge runtime, ensuring credentials never touch client-side assets',
+          'Passing service role keys as query parameters in GET URLs',
+          'Writing secret keys to public unauthenticated S3 buckets'
+        ],
+        correctIndex: 1,
+        explanation: 'Edge runtime environment variables isolate sensitive credentials on serverless compute nodes, preventing browser exposure.',
+        questionType: 'Security & RLS Analysis'
+      },
+      {
+        id: 'edge_q3',
+        question: `How do V8 Isolate-based Edge Runtimes (Cloudflare Workers / Deno / Vercel Edge) achieve <5ms cold-start latency compared to standard Docker containers?`,
+        options: [
+          'By executing lightweight JavaScript contexts within a shared multi-tenant V8 process without booting an OS kernel',
+          'By pre-warming 10,000 dedicated Linux VMs on standby',
+          'By disabling memory safety garbage collection entirely',
+          'By restricting execution exclusively to single-threaded WebAssembly'
+        ],
+        correctIndex: 0,
+        explanation: 'V8 isolates avoid the memory and hypervisor initialization overhead of traditional containers, enabling instant spin-up.',
+        questionType: 'System Design Tradeoff'
+      }
+    ];
+  }
+
+  // Topic 5: Vector Pipelines, AI/ML & RAG Systems
+  if (lower.includes('vector') || lower.includes('rag') || lower.includes('embedding') || lower.includes('ml') || lower.includes('pipeline')) {
+    return [
+      {
+        id: 'vec_q1',
+        question: `Why is Hierarchical Navigable Small World (HNSW) indexing preferred over brute-force k-Nearest Neighbor (k-NN) for high-scale vector retrieval?`,
+        options: [
+          'HNSW reduces search time complexity from O(N) to O(log N) through multi-layer geometric graph traversal',
+          'HNSW converts high-dimensional embeddings into 1D integers with zero information loss',
+          'HNSW eliminates the need for vector databases entirely',
+          'HNSW operates exclusively on CPU registers without RAM allocation'
+        ],
+        correctIndex: 0,
+        explanation: 'HNSW skip-list graphs navigate high-dimensional vector spaces in logarithmic time, enabling sub-10ms queries across millions of embeddings.',
+        questionType: 'Algorithmic Complexity'
+      },
+      {
+        id: 'vec_q2',
+        question: `When chunking technical codebase documentation for RAG ingestion, why is a 15-20% sliding window overlap applied between adjacent text chunks?`,
+        options: [
+          'To preserve semantic context and function signatures that cross chunk boundaries, preventing fragmented retrieval',
+          'To force every chunk to contain exactly 512 characters',
+          'To delete duplicate vocabulary words',
+          'To bypass LLM context window token limits'
+        ],
+        correctIndex: 0,
+        explanation: 'Chunk overlap ensures that cross-boundary definitions and references are retained in at least one retrieved chunk.',
+        questionType: 'Code Output Debug'
+      },
+      {
+        id: 'vec_q3',
+        question: `For L2 unit-normalized vector embeddings (||v|| = 1), what is the mathematical relationship between Cosine Similarity and Dot Product?`,
+        options: [
+          'They are mathematically identical, but Dot Product requires fewer operations since vector magnitude division is eliminated',
+          'Cosine similarity is always negative while Dot Product is positive',
+          'Dot Product cannot be computed on vector dimensions greater than 3',
+          'Cosine similarity only measures vector length, not direction'
+        ],
+        correctIndex: 0,
+        explanation: 'Normalized vectors simplify cosine similarity to a direct dot product, saving square root computations during high-throughput similarity ranking.',
+        questionType: 'Architecture Scenario'
+      }
+    ];
+  }
+
+  // Topic 6: Remediation & Foundations
+  if (lower.includes('remediation') || lower.includes('foundation') || lower.includes('drill')) {
+    return [
+      {
+        id: 'rem_q1',
+        question: `In functional state management, what is the fundamental requirement of a pure reducer function?`,
+        options: [
+          'Given the same state and action, it must always return the exact same new state without mutating arguments or causing side-effects',
+          'It must perform asynchronous network calls inside the reducer body',
+          'It must modify window.localStorage directly',
+          'It must generate random UUIDs on every invocation'
+        ],
+        correctIndex: 0,
+        explanation: 'Purity guarantees deterministic reproducibility, enabling dependable state snapshots, time-travel debugging, and undo capabilities.',
+        questionType: 'Code Output Debug'
+      },
+      {
+        id: 'rem_q2',
+        question: `Why should promises and async operations always include explicit rejection handlers or try/catch blocks?`,
+        options: [
+          'To prevent unhandled promise rejections from crashing the Node.js event loop and leaving state in an inconsistent pending mode',
+          'Because async functions cannot execute without catch statements',
+          'To speed up browser rendering speed by 50%',
+          'To automatically compress JSON responses'
+        ],
+        correctIndex: 0,
+        explanation: 'Unhandled promise rejections leave client state in indefinite loading locks and can terminate server worker processes.',
+        questionType: 'Architecture Scenario'
+      },
+      {
+        id: 'rem_q3',
+        question: `What is the primary role of client-side validation (e.g. schema checks) when backend validation is also implemented?`,
+        options: [
+          'To provide instant perceptual feedback to the user and avoid redundant network round-trips for malformed inputs',
+          'To replace backend security checks entirely',
+          'To bypass database authentication',
+          'To store sensitive credentials in plain text'
+        ],
+        correctIndex: 0,
+        explanation: 'Client validation optimizes user experience with zero-latency error messages, while server validation enforces security.',
+        questionType: 'Security & RLS Analysis'
+      }
+    ];
+  }
+
+  // Default Fallback: Specialized System Engineering Assessment
+  return [
+    {
+      id: 'gen_q1',
+      question: `When engineering production architectures for ${moduleTitle} (${targetRole}), what is the primary architectural purpose of enforcing idempotency on state mutation endpoints?`,
+      options: [
+        'Ensures repeated or retried network requests produce the exact same outcome without causing duplicate database mutations',
+        'Decreases the raw network packet size of JSON responses',
+        'Automatically bypasses database authentication checks',
+        'Forces synchronous blocking execution on background workers'
+      ],
+      correctIndex: 0,
+      explanation: 'Idempotency keys ensure retry loops during network partitions do not generate duplicate records or double mutations.',
+      questionType: 'Architecture Scenario'
+    },
+    {
+      id: 'gen_q2',
+      question: `How does database Row-Level Security (RLS) protect multi-tenant architectures for ${learnerName}?`,
+      options: [
+        'It encrypts entire hard drive partitions on the host',
+        'It applies query filtering rules directly inside the PostgreSQL engine per authenticated user session',
+        'It replaces the need for frontend validation entirely',
+        'It converts all SQL queries into GraphQL schemas automatically'
+      ],
+      correctIndex: 1,
+      explanation: 'PostgreSQL RLS guarantees tenant boundaries directly within the database engine based on verified JWT session claims.',
+      questionType: 'Security & RLS Analysis'
+    },
+    {
+      id: 'gen_q3',
+      question: `What is the recommended approach for handling high-frequency state updates in interactive dashboards for ${targetRole}?`,
+      options: [
+        'Make a synchronous HTTP call on every keystroke with no throttling',
+        'Apply optimistic local UI updates and debounce network synchronization',
+        'Reload the entire browser page every 2 seconds',
+        'Store all application state in global unmanaged window variables'
+      ],
+      correctIndex: 1,
+      explanation: 'Optimistic UI updates with network debouncing provide zero perceived latency while keeping backend request rates sustainable.',
+      questionType: 'System Design Tradeoff'
+    }
+  ];
+}
+
 // Load user-specific storage bundle
 export function loadUserBundle(username: string): {
   profile: Profile;
@@ -758,48 +1078,50 @@ export const api = {
     const username = getActiveUsername();
     const bundle = loadUserBundle(username);
     const mod = bundle.pathway.modules?.find(m => m.id === moduleId) || bundle.pathway.modules?.[0];
+    const moduleTitle = mod?.title || 'System Engineering Check';
+    const difficulty = mod?.difficulty || 'intermediate';
+
+    // 1. Try generating with live Gemini AI if available
+    const geminiPrompt = `Generate a 3-question adaptive quiz for the module "${moduleTitle}" (${difficulty} level) for a ${bundle.profile.target_role}.
+    Include diverse question types:
+    - 1 Architecture Scenario Question
+    - 1 Code Output Debug Question
+    - 1 Security / Algorithmic Complexity Question
+    
+    Return JSON format:
+    [
+      {
+        "id": "q1",
+        "question": "...",
+        "options": ["A", "B", "C", "D"],
+        "correctIndex": 0,
+        "explanation": "...",
+        "questionType": "Architecture Scenario"
+      }
+    ]`;
+
+    try {
+      const rawAi = await callDirectGemini(geminiPrompt, 'You are an elite technical assessment architect. Return only a valid JSON array of questions with exact correctIndex and explanations.');
+      if (rawAi) {
+        const cleaned = rawAi.replace(/```json\s*/gi, '').replace(/```\s*$/gi, '').trim();
+        const parsed = JSON.parse(cleaned);
+        if (Array.isArray(parsed) && parsed.length >= 3) {
+          return {
+            moduleTitle,
+            difficulty,
+            questions: parsed
+          };
+        }
+      }
+    } catch {}
+
+    // 2. High-Precision Domain Question Bank tailored per topic
+    const questions = generateTopicQuestions(moduleTitle, bundle.profile.target_role, bundle.profile.full_name);
 
     return {
-      moduleTitle: mod?.title || 'System Engineering Check',
-      difficulty: mod?.difficulty || 'intermediate',
-      questions: [
-        {
-          id: 'q1',
-          question: `When engineering scalable systems for ${bundle.profile.target_role}, what is the primary architectural purpose of enforcing idempotency on state mutation endpoints?`,
-          options: [
-            'Prevents duplicate side-effects when clients retry failed requests',
-            'Decreases the raw network packet size of JSON responses',
-            'Automatically bypasses database authentication checks',
-            'Forces synchronous execution on all background workers'
-          ],
-          correctIndex: 0,
-          explanation: 'Idempotency keys ensure repeated or retried requests produce the exact same outcome without causing duplicate database mutations.'
-        },
-        {
-          id: 'q2',
-          question: `How does Row-Level Security (RLS) protect multitenant architectures for ${bundle.profile.full_name}?`,
-          options: [
-            'It encrypts entire hard drive partitions on the host',
-            'It applies query filtering rules directly inside the PostgreSQL engine per authenticated user',
-            'It replaces the need for frontend validation entirely',
-            'It converts all SQL queries into GraphQL schemas automatically'
-          ],
-          correctIndex: 1,
-          explanation: 'PostgreSQL RLS ensures tenant boundaries are enforced at the database engine level, preventing unauthorized access even if app code forgets a WHERE clause.'
-        },
-        {
-          id: 'q3',
-          question: 'What is the recommended approach for handling high-frequency state updates in interactive dashboards?',
-          options: [
-            'Make a synchronous HTTP call on every keystroke with no throttling',
-            'Apply optimistic local UI updates and debounce network synchronization',
-            'Reload the entire browser page every 2 seconds',
-            'Store all application state in global unmanaged window variables'
-          ],
-          correctIndex: 1,
-          explanation: 'Optimistic UI updates with network debouncing provide zero perceived latency to the user while keeping backend request rates sustainable.'
-        }
-      ]
+      moduleTitle,
+      difficulty,
+      questions
     };
   },
 
@@ -809,8 +1131,28 @@ export const api = {
   ): Promise<QuizSubmissionResponse> => {
     const username = getActiveUsername();
     const bundle = loadUserBundle(username);
+    const mod = bundle.pathway.modules?.find(m => m.id === moduleId) || bundle.pathway.modules?.[0];
+    const moduleTitle = mod?.title || 'System Engineering Check';
 
-    const correctCount = answers.filter((a, idx) => a.selectedIndex === (idx === 0 ? 0 : idx === 1 ? 1 : 1)).length;
+    // Get the definitive question bank for this module
+    const questionBank = generateTopicQuestions(moduleTitle, bundle.profile.target_role, bundle.profile.full_name);
+
+    const questionResults = answers.map((ans, idx) => {
+      const targetQ = questionBank.find(q => q.id === ans.questionId) || questionBank[idx] || questionBank[0];
+      const correctIdx = targetQ.correctIndex !== undefined ? targetQ.correctIndex : 0;
+      const isCorrect = ans.selectedIndex === correctIdx;
+
+      return {
+        questionId: ans.questionId,
+        question: targetQ.question,
+        selectedIndex: ans.selectedIndex,
+        correctIndex: correctIdx,
+        isCorrect,
+        explanation: targetQ.explanation || 'Verified architectural standard and requirement.'
+      };
+    });
+
+    const correctCount = questionResults.filter(r => r.isCorrect).length;
     const totalQuestions = answers.length || 3;
     const scorePercentage = Math.round((correctCount / totalQuestions) * 100);
 
@@ -823,7 +1165,7 @@ export const api = {
         id: `mod_remed_${Date.now()}`,
         pathway_id: bundle.pathway.id,
         module_order: 2,
-        title: `⚡ Remediation Drill: Foundational Architecture for ${bundle.profile.target_role}`,
+        title: `⚡ Remediation Drill: Foundations of ${moduleTitle}`,
         description: 'Targeted reinforcement of core mechanics before advancing.',
         difficulty: 'beginner',
         status: 'in_progress',
@@ -867,8 +1209,8 @@ export const api = {
       module_id: moduleId,
       score: scorePercentage,
       feedback_notes: passed
-        ? `Verified mastery on diagnostic assessment for ${bundle.profile.full_name}.`
-        : `Diagnostic indicated prerequisite gaps. Remediation module injected into ${bundle.profile.username}'s pathway.`,
+        ? `Verified mastery on ${moduleTitle} (${scorePercentage}%) for ${bundle.profile.full_name}.`
+        : `Diagnostic indicated prerequisite gaps on ${moduleTitle} (${scorePercentage}%). Injected targeted remediation drill.`,
       adaptation_triggered: adaptationTriggered,
       created_at: new Date().toISOString()
     };
@@ -882,14 +1224,7 @@ export const api = {
       passed,
       correctCount,
       totalQuestions,
-      results: answers.map((a, idx) => ({
-        questionId: a.questionId,
-        question: `Knowledge Check Question ${idx + 1}`,
-        selectedIndex: a.selectedIndex,
-        correctIndex: idx === 0 ? 0 : idx === 1 ? 1 : 1,
-        isCorrect: a.selectedIndex === (idx === 0 ? 0 : idx === 1 ? 1 : 1),
-        explanation: 'Demonstrated key conceptual requirements for scalable systems.'
-      })),
+      results: questionResults,
       feedbackNotes: passed
         ? `Exceptional performance (${scorePercentage}%). Milestone verified for ${bundle.profile.full_name}!`
         : `Diagnostic indicates foundational gaps (${scorePercentage}%). Injected targeted remediation drill into your roadmap.`,

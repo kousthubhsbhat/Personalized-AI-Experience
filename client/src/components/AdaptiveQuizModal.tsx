@@ -304,11 +304,18 @@ export const AdaptiveQuizModal: React.FC<AdaptiveQuizModalProps> = ({
                 </div>
               </div>
 
-              {/* Question Text */}
+              {/* Question Text & Type Badge */}
               <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
-                <div className="flex items-center gap-2 text-xs font-medium text-cyan-400 mb-2">
-                  <HelpCircle className="w-4 h-4" />
-                  <span>Knowledge Check</span>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center gap-2 text-xs font-medium text-cyan-400">
+                    <HelpCircle className="w-4 h-4" />
+                    <span>Knowledge Check</span>
+                  </div>
+                  {currentQuestion.questionType && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 font-mono font-medium">
+                      {currentQuestion.questionType}
+                    </span>
+                  )}
                 </div>
                 <h3 className="text-base font-semibold text-white leading-snug">
                   {currentQuestion.question}

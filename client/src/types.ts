@@ -62,6 +62,7 @@ export interface QuizQuestion {
   options: string[];
   correctIndex?: number;
   explanation?: string;
+  questionType?: 'Architecture Scenario' | 'Code Output Debug' | 'Security & RLS Analysis' | 'Algorithmic Complexity' | 'System Design Tradeoff';
 }
 
 export interface QuizResultItem {
