@@ -57,6 +57,19 @@ export const CopilotDrawer: React.FC = () => {
     }
   }, [messages, isCopilotOpen]);
 
+  useEffect(() => {
+    if (profile) {
+      setMessages([
+        {
+          id: `welcome-${profile.username}`,
+          role: 'assistant',
+          content: `👋 Hello **${profile.full_name}** (@${profile.username})!\n\nI am your personalized **SkillPulse AI Tech Mentor** powered by Google Gemini.\n\nI am connected directly to your active track for **${profile.target_role}**.\n\nAsk me anything about system architecture, code reviews, or interview challenges!`,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }
+      ]);
+    }
+  }, [profile?.username]);
+
   const handleSendMessage = async (textToSend?: string) => {
     const messageText = textToSend || input.trim();
     if (!messageText || isLoading) return;

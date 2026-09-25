@@ -22,6 +22,10 @@ interface AppContextType {
   copilotModuleContext: PathwayModule | null;
   setCopilotModuleContext: (mod: PathwayModule | null) => void;
   openCopilotForModule: (mod?: PathwayModule) => void;
+  isAuthModalOpen: boolean;
+  setIsAuthModalOpen: (open: boolean) => void;
+  authModalMode: 'signin' | 'signup';
+  openAuthModal: (mode?: 'signin' | 'signup') => void;
   toasts: ToastMessage[];
   addToast: (toast: Omit<ToastMessage, 'id'>) => void;
   removeToast: (id: string) => void;
@@ -40,6 +44,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [selectedModule, setSelectedModule] = useState<PathwayModule | null>(null);
   const [isCopilotOpen, setIsCopilotOpen] = useState<boolean>(false);
   const [copilotModuleContext, setCopilotModuleContext] = useState<PathwayModule | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
+  const [authModalMode, setAuthModalMode] = useState<'signin' | 'signup'>('signin');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   const addToast = (toast: Omit<ToastMessage, 'id'>) => {
@@ -52,6 +58,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const removeToast = (id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
+  };
+
+  const openAuthModal = (mode: 'signin' | 'signup' = 'signin') => {
+    setAuthModalMode(mode);
+    setIsAuthModalOpen(true);
   };
 
   const refreshPathway = async () => {
@@ -103,6 +114,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         copilotModuleContext,
         setCopilotModuleContext,
         openCopilotForModule,
+        isAuthModalOpen,
+        setIsAuthModalOpen,
+        authModalMode,
+        openAuthModal,
         toasts,
         addToast,
         removeToast,

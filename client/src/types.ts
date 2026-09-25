@@ -1,10 +1,13 @@
 export interface Profile {
   id: string;
+  username: string; // user.name handle e.g. 'kousthubh'
   email: string;
   full_name: string;
   target_role: string;
   learning_style: 'hands-on' | 'visual' | 'theoretical';
   time_commitment_mins: number;
+  avatar_seed?: string;
+  security_pin?: string;
   created_at?: string;
 }
 
