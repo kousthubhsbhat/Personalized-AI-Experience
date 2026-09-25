@@ -193,48 +193,9 @@ export const PathwayDashboard: React.FC = () => {
           )}
         </div>
 
-        {/* Right Sidebar: Skills Matrix & Quick Copilot Launcher */}
+        {/* Right Sidebar: AI Mentor & Quick Profiler Launcher */}
         <div className="lg:col-span-4 space-y-6">
           
-          {/* Skill Mastery Matrix Card */}
-          <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4 shadow-xl">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-cyan-400" />
-                <h3 className="text-sm font-bold text-white">Live Skill Matrix</h3>
-              </div>
-              <Link
-                to="/analytics"
-                className="text-xs text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-1"
-              >
-                Radar View <ArrowRight className="w-3 h-3" />
-              </Link>
-            </div>
-
-            <div className="space-y-3">
-              {skills.map((s) => (
-                <div key={s.id || s.skill_name} className="space-y-1">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-300 font-medium truncate max-w-[180px]">{s.skill_name}</span>
-                    <span className="font-mono font-bold text-slate-200">{s.mastery_score}%</span>
-                  </div>
-                  <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all duration-500 ${
-                        s.mastery_score >= 80
-                          ? 'bg-emerald-400'
-                          : s.mastery_score >= 60
-                          ? 'bg-cyan-400'
-                          : 'bg-indigo-400'
-                      }`}
-                      style={{ width: `${s.mastery_score}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
           {/* AI Tech Mentor Card */}
           <div className="p-5 rounded-2xl bg-gradient-to-b from-indigo-950/40 to-slate-900 border border-indigo-500/30 space-y-3 shadow-glow">
             <div className="flex items-center gap-3">
