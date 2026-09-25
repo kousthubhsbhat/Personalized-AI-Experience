@@ -8,6 +8,8 @@ import { PathwayDashboard } from './pages/PathwayDashboard';
 import { OnboardingPage } from './pages/OnboardingPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { SkillGapPage } from './pages/SkillGapPage';
+import { LoginPage } from './pages/LoginPage';
+import { isSessionActive } from './services/api';
 
 export const App: React.FC = () => {
   return (
@@ -18,7 +20,8 @@ export const App: React.FC = () => {
           
           <main className="flex-1">
             <Routes>
-              <Route path="/" element={<Navigate to="/pathway" replace />} />
+              <Route path="/" element={<Navigate to="/login" replace />} />
+              <Route path="/login" element={<LoginPage />} />
               <Route path="/pathway" element={<PathwayDashboard />} />
               <Route path="/onboarding" element={<OnboardingPage />} />
               <Route path="/analytics" element={<AnalyticsPage />} />

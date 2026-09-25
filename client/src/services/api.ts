@@ -92,6 +92,24 @@ export function getActiveUsername(): string {
   return 'kousthubh';
 }
 
+const SESSION_KEY = 'skillpulse_session_active';
+
+// Check if user session is active
+export function isSessionActive(): boolean {
+  if (typeof window === 'undefined') return true;
+  return localStorage.getItem(SESSION_KEY) === 'true';
+}
+
+// Set session active
+export function setSessionActive(active: boolean): void {
+  if (typeof window === 'undefined') return;
+  if (active) {
+    localStorage.setItem(SESSION_KEY, 'true');
+  } else {
+    localStorage.removeItem(SESSION_KEY);
+  }
+}
+
 // Set Active Username
 export function setActiveUsername(username: string): void {
   if (typeof window === 'undefined') return;
@@ -521,6 +539,7 @@ export const api = {
     const { pathway, skills } = generateStarterPathway(newProfile, payload.initial_skills);
     saveUserBundle(clean, { profile: newProfile, pathway, skills, logs: [] });
     setActiveUsername(clean);
+    setSessionActive(true);
 
     // Sync to Supabase if connected
     if (supabase) {
@@ -562,12 +581,18 @@ export const api = {
     }
 
     setActiveUsername(found.username);
+    setSessionActive(true);
     return { success: true, profile: found };
+  },
+
+  signOutUser: (): void => {
+    setSessionActive(false);
   },
 
   switchUser: (username: string): Profile => {
     const clean = cleanUsername(username);
     setActiveUsername(clean);
+    setSessionActive(true);
     return loadUserBundle(clean).profile;
   },
 
