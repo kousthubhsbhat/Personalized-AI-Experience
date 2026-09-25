@@ -98,7 +98,7 @@ export const PathwayDashboard: React.FC = () => {
             </h1>
 
             <p className="text-sm text-slate-300 leading-relaxed">
-              Real-time pathway calibrated for <strong className="text-white">{profile?.full_name || 'Alex Chen'}</strong> targeting <strong className="text-cyan-400">{profile?.target_role || 'Senior AI Engineer'}</strong>. Modules dynamically evolve based on diagnostic feedback.
+              Real-time pathway calibrated for <strong className="text-white">{profile?.full_name || 'Learner'}</strong> targeting <strong className="text-cyan-400">{profile?.target_role || 'Senior AI Engineer'}</strong>. Modules dynamically evolve based on diagnostic feedback.
             </p>
           </div>
 

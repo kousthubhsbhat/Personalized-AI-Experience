@@ -41,62 +41,39 @@ export interface RegisterUserPayload {
   initial_skills?: Record<string, number>;
 }
 
-// Default Preset Users to Seed on First Launch
+// Default Sample Users (Generic templates)
 const DEFAULT_PRESET_USERS: Profile[] = [
   {
-    id: 'user_kousthubh',
-    username: 'kousthubh',
-    full_name: 'Kousthubh S Bhat',
-    email: 'kousthubh@skillpulse.ai',
+    id: 'user_learner',
+    username: 'learner',
+    full_name: 'AI Learner',
+    email: 'learner@skillpulse.ai',
     target_role: 'Senior Full-Stack AI Engineer',
     learning_style: 'hands-on',
     time_commitment_mins: 45,
-    avatar_seed: 'KB',
-    created_at: new Date().toISOString()
-  },
-  {
-    id: 'user_alex_chen',
-    username: 'alex.chen',
-    full_name: 'Alex Chen',
-    email: 'alex.chen@skillpulse.ai',
-    target_role: 'Autonomous AI Agent Developer',
-    learning_style: 'visual',
-    time_commitment_mins: 30,
-    avatar_seed: 'AC',
-    created_at: new Date().toISOString()
-  },
-  {
-    id: 'user_sarah_lin',
-    username: 'sarah.lin',
-    full_name: 'Sarah Lin',
-    email: 'sarah.lin@skillpulse.ai',
-    target_role: 'LLM Systems Architect',
-    learning_style: 'theoretical',
-    time_commitment_mins: 60,
-    avatar_seed: 'SL',
+    avatar_seed: 'AL',
     created_at: new Date().toISOString()
   }
 ];
 
-// Helper: Normalize Username handle (e.g. "Kousthubh Bhat" -> "kousthubh")
+// Helper: Normalize Username handle (e.g. "Jane Doe" -> "janedoe")
 export function cleanUsername(input: string): string {
   return input.trim().toLowerCase().replace(/[^a-z0-9._-]/g, '');
 }
 
 // Get Currently Active Username
 export function getActiveUsername(): string {
-  if (typeof window === 'undefined') return 'kousthubh';
+  if (typeof window === 'undefined') return '';
   const stored = localStorage.getItem(ACTIVE_USER_KEY);
   if (stored) return stored;
-  localStorage.setItem(ACTIVE_USER_KEY, 'kousthubh');
-  return 'kousthubh';
+  return '';
 }
 
 const SESSION_KEY = 'skillpulse_session_active';
 
-// Check if user session is active
+// Check if user session is active (strictly false if not logged in)
 export function isSessionActive(): boolean {
-  if (typeof window === 'undefined') return true;
+  if (typeof window === 'undefined') return false;
   return localStorage.getItem(SESSION_KEY) === 'true';
 }
 
@@ -107,6 +84,7 @@ export function setSessionActive(active: boolean): void {
     localStorage.setItem(SESSION_KEY, 'true');
   } else {
     localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(ACTIVE_USER_KEY);
   }
 }
 
@@ -114,7 +92,11 @@ export function setSessionActive(active: boolean): void {
 export function setActiveUsername(username: string): void {
   if (typeof window === 'undefined') return;
   const clean = cleanUsername(username);
-  localStorage.setItem(ACTIVE_USER_KEY, clean);
+  if (clean) {
+    localStorage.setItem(ACTIVE_USER_KEY, clean);
+  } else {
+    localStorage.removeItem(ACTIVE_USER_KEY);
+  }
 }
 
 // Get All Registered Users

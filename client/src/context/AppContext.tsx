@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { api } from '../services/api';
+import { api, isSessionActive, getActiveUsername } from '../services/api';
 import { LearningPathway, PathwayModule, UserSkill, Profile } from '../types';
 
 interface ToastMessage {
@@ -10,6 +10,7 @@ interface ToastMessage {
 }
 
 interface AppContextType {
+  isAuthenticated: boolean;
   pathway: LearningPathway | null;
   modules: PathwayModule[];
   skills: UserSkill[];
@@ -26,6 +27,7 @@ interface AppContextType {
   setIsAuthModalOpen: (open: boolean) => void;
   authModalMode: 'signin' | 'signup';
   openAuthModal: (mode?: 'signin' | 'signup') => void;
+  signOut: () => void;
   toasts: ToastMessage[];
   addToast: (toast: Omit<ToastMessage, 'id'>) => void;
   removeToast: (id: string) => void;
@@ -36,6 +38,7 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => isSessionActive() && !!getActiveUsername());
   const [pathway, setPathway] = useState<LearningPathway | null>(null);
   const [modules, setModules] = useState<PathwayModule[]>([]);
   const [skills, setSkills] = useState<UserSkill[]>([]);
@@ -65,7 +68,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setIsAuthModalOpen(true);
   };
 
+  const signOut = () => {
+    api.signOutUser();
+    setIsAuthenticated(false);
+    setProfile(null);
+    setPathway(null);
+    setModules([]);
+    setSkills([]);
+    addToast({
+      type: 'info',
+      title: 'Signed Out',
+      description: 'You have been safely signed out. Please sign in to access learning tracks.'
+    });
+  };
+
   const refreshPathway = async () => {
+    const active = isSessionActive() && !!getActiveUsername();
+    if (!active) {
+      setIsAuthenticated(false);
+      setProfile(null);
+      setPathway(null);
+      setModules([]);
+      setSkills([]);
+      setIsLoadingPathway(false);
+      return;
+    }
+
     setIsLoadingPathway(true);
     try {
       const data = await api.getCurrentPathway();
@@ -73,6 +101,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setModules(data.pathway?.modules || []);
       setSkills(data.skills || []);
       setProfile(data.profile || null);
+      setIsAuthenticated(true);
     } catch (err) {
       console.warn('Could not fetch current pathway:', err);
     } finally {
@@ -89,6 +118,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const openCopilotForModule = (mod?: PathwayModule) => {
+    if (!isAuthenticated) {
+      openAuthModal('signin');
+      addToast({
+        type: 'warning',
+        title: 'Authentication Required',
+        description: 'Please sign in to interact with the AI Copilot.'
+      });
+      return;
+    }
     if (mod) {
       setCopilotModuleContext(mod);
     }
@@ -102,6 +140,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   return (
     <AppContext.Provider
       value={{
+        isAuthenticated,
         pathway,
         modules,
         skills,
@@ -118,6 +157,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setIsAuthModalOpen,
         authModalMode,
         openAuthModal,
+        signOut,
         toasts,
         addToast,
         removeToast,

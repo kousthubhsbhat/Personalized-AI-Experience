@@ -29,8 +29,8 @@ const localStore: LocalStore = {
 const seedUserId = 'user_dev_pulse_01';
 localStore.profiles.set(seedUserId, {
   id: seedUserId,
-  email: 'alex.chen@skillpulse.ai',
-  full_name: 'Alex Chen',
+  email: 'learner@skillpulse.ai',
+  full_name: 'AI Learner',
   target_role: 'Senior Full-Stack AI Engineer',
   learning_style: 'hands-on',
   time_commitment_mins: 45,

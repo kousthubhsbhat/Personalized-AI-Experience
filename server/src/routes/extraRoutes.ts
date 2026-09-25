@@ -179,8 +179,8 @@ router.get('/certificate/generate', authMiddleware, async (req: AuthenticatedReq
 
     res.json({
       certificateId: certId,
-      recipientName: profile?.full_name || 'Alex Chen',
-      recipientEmail: profile?.email || 'alex.chen@skillpulse.ai',
+      recipientName: profile?.full_name || 'Learner',
+      recipientEmail: profile?.email || 'learner@skillpulse.ai',
       roleTitle: profile?.target_role || pathway?.title || 'Senior Full-Stack AI Engineer',
       domain: pathway?.domain || 'Advanced AI Engineering',
       issueDate: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),

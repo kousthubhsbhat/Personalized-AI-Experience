@@ -41,7 +41,7 @@ router.get('/analytics/overview', authMiddleware, async (req: AuthenticatedReque
 
     res.json({
       profile: profile || {
-        full_name: 'Alex Chen',
+        full_name: 'Learner',
         target_role: 'Senior Full-Stack AI Engineer',
         time_commitment_mins: 30,
         learning_style: 'hands-on'

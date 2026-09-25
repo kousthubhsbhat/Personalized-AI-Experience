@@ -21,8 +21,8 @@ export const authMiddleware = async (
       // Default to standard demo user for rapid onboarding if no header in dev
       req.user = {
         id: 'user_dev_pulse_01',
-        email: 'alex.chen@skillpulse.ai',
-        full_name: 'Alex Chen'
+        email: 'learner@skillpulse.ai',
+        full_name: 'Learner'
       };
       return next();
     }
@@ -63,8 +63,8 @@ export const authMiddleware = async (
 
     req.user = {
       id: 'user_dev_pulse_01',
-      email: 'alex.chen@skillpulse.ai',
-      full_name: 'Alex Chen'
+      email: 'learner@skillpulse.ai',
+      full_name: 'AI Learner'
     };
     next();
   } catch (error) {

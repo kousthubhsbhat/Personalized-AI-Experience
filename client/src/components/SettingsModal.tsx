@@ -159,8 +159,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
             </div>
             <div className="flex items-center justify-between text-xs pt-1">
               <div>
-                <p className="font-bold text-white">{profile?.full_name || 'Alex Chen'}</p>
-                <p className="text-slate-400 font-mono text-[11px]">@{profile?.username || 'learner'} • <span className="text-cyan-400">Database Record Active</span></p>
+                <p className="font-bold text-white">{profile?.full_name || 'Learner'}</p>
+                <p className="text-slate-400 font-mono text-[11px]">@{profile?.username || 'user'} • <span className="text-cyan-400">Database Record Active</span></p>
               </div>
               <span className="px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 font-mono text-[10px]">
                 ID: {profile?.id || 'user_dev_pulse_01'}

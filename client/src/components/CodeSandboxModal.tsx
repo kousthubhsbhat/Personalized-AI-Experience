@@ -22,12 +22,18 @@ interface CodeSandboxModalProps {
   onClose: () => void;
 }
 
-const DEFAULT_SNIPPET = `// SkillPulse AI Interactive Sandbox
+export const CodeSandboxModal: React.FC<CodeSandboxModalProps> = ({
+  initialCode,
+  initialTitle,
+  onClose,
+}) => {
+  const { openCopilotForModule, addToast, profile } = useApp();
+  const defaultSnippet = `// SkillPulse AI Interactive Sandbox
 // Test state machines, async APIs, and Gemini data transforms
 
 const learnerMatrix = {
-  name: "Alex Chen",
-  targetRole: "Senior Full-Stack AI Engineer",
+  name: "${profile?.full_name || 'Learner'}",
+  targetRole: "${profile?.target_role || 'Senior AI Engineer'}",
   skills: [
     { name: "TypeScript", score: 88 },
     { name: "Gemini AI", score: 92 },
@@ -35,7 +41,7 @@ const learnerMatrix = {
   ]
 };
 
-console.log("⚡ Executing SkillPulse State Engine...");
+console.log("⚡ Executing SkillPulse State Engine for " + learnerMatrix.name + "...");
 const avgScore = learnerMatrix.skills.reduce((acc, s) => acc + s.score, 0) / learnerMatrix.skills.length;
 console.log(\`🎯 Verified Readiness: \${Math.round(avgScore)}%\`);
 
@@ -45,14 +51,7 @@ if (avgScore >= 85) {
   console.log("💡 Status: Recommended targeted practice.");
 }
 `;
-
-export const CodeSandboxModal: React.FC<CodeSandboxModalProps> = ({
-  initialCode,
-  initialTitle,
-  onClose,
-}) => {
-  const { openCopilotForModule, addToast } = useApp();
-  const [code, setCode] = useState<string>(initialCode || DEFAULT_SNIPPET);
+  const [code, setCode] = useState<string>(initialCode || defaultSnippet);
   const [output, setOutput] = useState<string>('');
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
@@ -84,7 +83,7 @@ export const CodeSandboxModal: React.FC<CodeSandboxModalProps> = ({
   };
 
   const resetCode = () => {
-    setCode(initialCode || DEFAULT_SNIPPET);
+    setCode(initialCode || defaultSnippet);
     setOutput('');
     setDurationMs(null);
   };

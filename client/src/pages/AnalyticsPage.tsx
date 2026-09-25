@@ -74,7 +74,7 @@ export const AnalyticsPage: React.FC = () => {
             Skill Radar & Calibration Analytics
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Real-time evaluation metrics for <strong className="text-slate-200">{profile?.full_name || 'Alex Chen'}</strong> ({profile?.target_role || 'Senior AI Engineer'})
+            Real-time evaluation metrics for <strong className="text-slate-200">{profile?.full_name || 'Learner'}</strong> ({profile?.target_role || 'Senior AI Engineer'})
           </p>
         </div>
 

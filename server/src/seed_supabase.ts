@@ -16,8 +16,8 @@ async function seedSupabase() {
   console.log('1. Inserting Profile...');
   const { error: pErr } = await supabase.from('profiles').upsert({
     id: userId,
-    email: 'alex.chen@skillpulse.ai',
-    full_name: 'Alex Chen',
+    email: 'learner@skillpulse.ai',
+    full_name: 'AI Learner',
     target_role: 'Senior Full-Stack AI Engineer',
     learning_style: 'hands-on',
     time_commitment_mins: 45

@@ -206,7 +206,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
                     type="text"
                     value={signInIdentifier}
                     onChange={(e) => setSignInIdentifier(e.target.value)}
-                    placeholder="e.g. kousthubh or alex.chen"
+                    placeholder="e.g. your_username or you@example.com"
                     className="w-full bg-[#070b14] border border-slate-700 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none"
                   />
                 </div>
@@ -265,7 +265,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
                         setUsername(e.target.value.toLowerCase().replace(/\s+/g, '.').replace(/[^a-z0-9._-]/g, ''));
                       }
                     }}
-                    placeholder="e.g. Kousthubh S Bhat"
+                    placeholder="e.g. John Doe"
                     className="w-full bg-[#070b14] border border-slate-700 focus:border-indigo-500 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-600 focus:outline-none"
                   />
                 </div>
@@ -279,7 +279,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
                     required
                     value={username}
                     onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9._-]/g, ''))}
-                    placeholder="e.g. kousthubh"
+                    placeholder="e.g. johndoe"
                     className="w-full bg-[#070b14] border border-slate-700 focus:border-indigo-500 rounded-xl px-3.5 py-2 text-xs text-white font-mono placeholder-slate-600 focus:outline-none"
                   />
                 </div>
@@ -294,7 +294,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="e.g. kousthubh@example.com"
+                  placeholder="e.g. johndoe@example.com"
                   className="w-full bg-[#070b14] border border-slate-700 focus:border-indigo-500 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-600 focus:outline-none"
                 />
               </div>

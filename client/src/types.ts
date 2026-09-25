@@ -1,6 +1,6 @@
 export interface Profile {
   id: string;
-  username: string; // user.name handle e.g. 'kousthubh'
+  username: string; // user.name handle e.g. 'janedoe'
   email: string;
   full_name: string;
   target_role: string;
