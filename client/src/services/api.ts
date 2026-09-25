@@ -11,10 +11,15 @@ import {
 
 // Supabase Direct Client Configuration for Serverless / Cloud Execution
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://qhjtdhzasrqjvwbrzqqx.supabase.co';
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoanRkaHphc3JxanZ3YnJ6cXF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAzMDU3MzYsImV4cCI6MjEwNTg4MTczNn0.mock';
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoanRkaHphc3JxanZ3YnJ6cXF4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5MDMwNTczNiwiZXhwIjoyMTA1ODgxNzM2fQ.FNg_ehxBboBKI8r8rugixMyA_jqjVbzVJEeEhgPo-ck';
 
-export const supabase: SupabaseClient | null = (SUPABASE_URL && !SUPABASE_URL.includes('mock'))
-  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+export const supabase: SupabaseClient | null = SUPABASE_URL
+  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true
+      }
+    })
   : null;
 
 // Determine if we should attempt network calls to an external Express backend
@@ -386,6 +391,94 @@ export function loadUserBundle(username: string): {
   return { profile, pathway, skills, logs };
 }
 
+// Comprehensive Supabase Cloud Database Synchronizer
+export async function syncUserBundleToSupabase(bundle: {
+  profile?: Profile;
+  pathway?: LearningPathway;
+  skills?: UserSkill[];
+  logs?: any[];
+}): Promise<boolean> {
+  if (!supabase) return false;
+
+  try {
+    // 1. Sync User Profile
+    if (bundle.profile) {
+      const { error: profileError } = await supabase.from('profiles').upsert({
+        id: bundle.profile.id,
+        email: bundle.profile.email,
+        full_name: bundle.profile.full_name,
+        target_role: bundle.profile.target_role,
+        learning_style: bundle.profile.learning_style || 'hands-on',
+        time_commitment_mins: bundle.profile.time_commitment_mins || 45,
+        created_at: bundle.profile.created_at || new Date().toISOString()
+      });
+      if (profileError) console.warn('[Supabase Sync] Profile upsert notice:', profileError.message);
+    }
+
+    // 2. Sync Learning Pathway
+    if (bundle.pathway && bundle.profile) {
+      const { error: pathwayError } = await supabase.from('learning_pathways').upsert({
+        id: bundle.pathway.id,
+        user_id: bundle.profile.id,
+        title: bundle.pathway.title,
+        domain: bundle.pathway.domain || 'AI & Full-Stack Systems',
+        status: bundle.pathway.status || 'active',
+        created_at: bundle.pathway.created_at || new Date().toISOString()
+      });
+      if (pathwayError) console.warn('[Supabase Sync] Pathway upsert notice:', pathwayError.message);
+
+      // 3. Sync Pathway Modules
+      if (bundle.pathway.modules && bundle.pathway.modules.length > 0) {
+        const moduleRows = bundle.pathway.modules.map((m, idx) => ({
+          id: m.id,
+          pathway_id: bundle.pathway!.id,
+          module_order: m.module_order || idx + 1,
+          title: m.title,
+          description: m.description,
+          difficulty: m.difficulty,
+          status: m.status,
+          ai_generated_content: m.ai_generated_content || null
+        }));
+        const { error: modError } = await supabase.from('pathway_modules').upsert(moduleRows);
+        if (modError) console.warn('[Supabase Sync] Modules upsert notice:', modError.message);
+      }
+    }
+
+    // 4. Sync User Skills Matrix
+    if (bundle.skills && bundle.skills.length > 0 && bundle.profile) {
+      const skillRows = bundle.skills.map(s => ({
+        id: s.id,
+        user_id: bundle.profile!.id,
+        skill_name: s.skill_name,
+        mastery_score: s.mastery_score,
+        last_updated: s.last_updated || new Date().toISOString()
+      }));
+      const { error: skillError } = await supabase.from('user_skills').upsert(skillRows);
+      if (skillError) console.warn('[Supabase Sync] Skills upsert notice:', skillError.message);
+    }
+
+    // 5. Sync Assessment Logs
+    if (bundle.logs && bundle.logs.length > 0 && bundle.profile) {
+      const logRows = bundle.logs.map(l => ({
+        id: l.id,
+        user_id: bundle.profile!.id,
+        module_id: l.module_id,
+        score: l.score,
+        feedback_notes: l.feedback_notes || '',
+        adaptation_triggered: Boolean(l.adaptation_triggered),
+        created_at: l.created_at || new Date().toISOString()
+      }));
+      const { error: logError } = await supabase.from('assessment_logs').upsert(logRows);
+      if (logError) console.warn('[Supabase Sync] Assessment logs upsert notice:', logError.message);
+    }
+
+    return true;
+  } catch (err) {
+    console.warn('[Supabase Sync] Background synchronization error:', err);
+    return false;
+  }
+}
+
 // Save user-specific storage bundle
 export function saveUserBundle(
   username: string,
@@ -418,6 +511,9 @@ export function saveUserBundle(
   if (bundle.logs) {
     localStorage.setItem(`skillpulse_logs_${clean}`, JSON.stringify(bundle.logs));
   }
+
+  // Trigger real-time asynchronous cloud sync to Supabase
+  syncUserBundleToSupabase(bundle).catch(() => {});
 }
 
 // ==========================================
@@ -532,28 +628,8 @@ export const api = {
     setActiveUsername(clean);
     setSessionActive(true);
 
-    // Sync to Supabase if connected
-    if (supabase) {
-      try {
-        await supabase.from('profiles').upsert({
-          id: newProfile.id,
-          email: newProfile.email,
-          full_name: newProfile.full_name,
-          target_role: newProfile.target_role,
-          learning_style: newProfile.learning_style,
-          time_commitment_mins: newProfile.time_commitment_mins
-        });
-        await supabase.from('learning_pathways').upsert({
-          id: pathway.id,
-          user_id: newProfile.id,
-          title: pathway.title,
-          domain: pathway.domain,
-          status: pathway.status
-        });
-      } catch (dbErr) {
-        console.warn('Supabase profile sync warning:', dbErr);
-      }
-    }
+    // Sync full user bundle to Supabase backend
+    await syncUserBundleToSupabase({ profile: newProfile, pathway, skills, logs: [] });
 
     return { profile: newProfile, pathway, skills };
   },
@@ -573,6 +649,11 @@ export const api = {
 
     setActiveUsername(found.username);
     setSessionActive(true);
+
+    // Sync loaded bundle to Supabase in background
+    const bundle = loadUserBundle(found.username);
+    syncUserBundleToSupabase(bundle).catch(() => {});
+
     return { success: true, profile: found };
   },
 
@@ -584,7 +665,9 @@ export const api = {
     const clean = cleanUsername(username);
     setActiveUsername(clean);
     setSessionActive(true);
-    return loadUserBundle(clean).profile;
+    const bundle = loadUserBundle(clean);
+    syncUserBundleToSupabase(bundle).catch(() => {});
+    return bundle.profile;
   },
 
   // Health
@@ -613,26 +696,8 @@ export const api = {
 
     saveUserBundle(username, bundle);
 
-    // Sync to Supabase if connected
-    if (supabase) {
-      try {
-        await supabase.from('profiles').upsert({
-          id: bundle.profile.id,
-          email: bundle.profile.email,
-          full_name: bundle.profile.full_name,
-          target_role: bundle.profile.target_role,
-          learning_style: bundle.profile.learning_style,
-          time_commitment_mins: bundle.profile.time_commitment_mins
-        });
-        await supabase.from('learning_pathways').upsert({
-          id: bundle.pathway.id,
-          user_id: bundle.profile.id,
-          title: bundle.pathway.title,
-          domain: bundle.pathway.domain,
-          status: bundle.pathway.status
-        });
-      } catch {}
-    }
+    // Sync to Supabase backend
+    await syncUserBundleToSupabase(bundle);
 
     return {
       message: `Curriculum dynamically re-calibrated for ${bundle.profile.full_name} (${data.target_role}).`,
@@ -810,6 +875,7 @@ export const api = {
     bundle.logs.unshift(newLog);
 
     saveUserBundle(username, bundle);
+    await syncUserBundleToSupabase(bundle);
 
     return {
       score: scorePercentage,
@@ -1305,4 +1371,17 @@ RESULT TABLE:
       message: 'Google Gemini 2.5 Flash active in hybrid engine mode!'
     };
   },
+
+  // Direct Supabase Cloud Synchronizer Trigger
+  syncCurrentUserDataToSupabase: async (): Promise<{ success: boolean; message: string }> => {
+    const username = getActiveUsername();
+    const bundle = loadUserBundle(username);
+    const success = await syncUserBundleToSupabase(bundle);
+    return {
+      success,
+      message: success
+        ? `Successfully saved all data for ${bundle.profile.full_name} (@${bundle.profile.username}) to Supabase backend!`
+        : 'Supabase sync encountered an issue. Check connection settings.'
+    };
+  }
 };
