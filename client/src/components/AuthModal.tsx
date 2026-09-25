@@ -17,7 +17,7 @@ import {
   Zap,
   Bot
 } from 'lucide-react';
-import { api, RegisterUserPayload, getRegisteredUsers } from '../services/api';
+import { api, RegisterUserPayload } from '../services/api';
 import { useApp } from '../context/AppContext';
 import { Profile } from '../types';
 
@@ -58,28 +58,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
   const [isRegistering, setIsRegistering] = useState<boolean>(false);
   const [signUpError, setSignUpError] = useState<string | null>(null);
 
-  const registeredUsers = getRegisteredUsers();
-
   if (!isOpen) return null;
-
-  const handleQuickSwitch = async (selectedUsername: string) => {
-    try {
-      api.switchUser(selectedUsername);
-      await refreshPathway();
-      addToast({
-        type: 'success',
-        title: 'Switched Learner Profile',
-        description: `Active learner account set to @${selectedUsername}.`
-      });
-      onClose();
-    } catch (err: any) {
-      addToast({
-        type: 'error',
-        title: 'Switch Failed',
-        description: err.message || 'Could not switch learner profile.'
-      });
-    }
-  };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -211,62 +190,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMo
           {/* TAB 1: SIGN IN */}
           {tab === 'signin' && (
             <div className="space-y-6 animate-in fade-in duration-200">
-              
-              {/* Quick Switch Persona Carousel */}
-              <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-2">
-                  Saved Profiles on this Device:
-                </label>
-                <div className="space-y-2">
-                  {registeredUsers.map((u) => {
-                    const isActive = activeProfile?.username === u.username;
-                    return (
-                      <button
-                        key={u.username}
-                        type="button"
-                        onClick={() => handleQuickSwitch(u.username)}
-                        className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between transition-all ${
-                          isActive
-                            ? 'bg-indigo-950/50 border-indigo-500/60 shadow-glow'
-                            : 'bg-slate-900/60 border-slate-800 hover:border-slate-700 hover:bg-slate-800/60'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs ${
-                            isActive
-                              ? 'bg-indigo-600 text-white shadow-sm'
-                              : 'bg-slate-800 text-slate-300 border border-slate-700'
-                          }`}>
-                            {u.avatar_seed || u.username.substring(0, 2).toUpperCase()}
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="font-bold text-white text-sm">{u.full_name}</span>
-                              <span className="text-[10px] font-mono text-slate-400">@{u.username}</span>
-                              {isActive && (
-                                <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                                  ACTIVE
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-[11px] text-cyan-400 font-medium">{u.target_role}</p>
-                          </div>
-                        </div>
-
-                        <span className="text-xs text-indigo-400 font-semibold flex items-center gap-1">
-                          {isActive ? 'Current' : 'Select'} <ArrowRight className="w-3.5 h-3.5" />
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="relative flex items-center justify-center my-4">
-                <div className="border-t border-slate-800 w-full" />
-                <span className="bg-[#0E1322] px-3 text-slate-500 font-mono text-[10px] uppercase">
-                  Or Sign In with Credentials
-                </span>
+              <div className="p-3.5 rounded-2xl bg-indigo-950/30 border border-indigo-500/20 text-xs text-indigo-300 flex items-center gap-2.5">
+                <ShieldCheck className="w-4 h-4 text-cyan-400 shrink-0" />
+                <span>Enter your username and password/PIN to sign in to your dashboard.</span>
               </div>
 
               {/* Sign In Form */}

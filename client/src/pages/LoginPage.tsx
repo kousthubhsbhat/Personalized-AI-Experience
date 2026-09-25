@@ -21,7 +21,7 @@ import {
   AlertTriangle,
   Play
 } from 'lucide-react';
-import { api, getRegisteredUsers, RegisterUserPayload } from '../services/api';
+import { api, RegisterUserPayload } from '../services/api';
 import { useApp } from '../context/AppContext';
 import { Profile } from '../types';
 
@@ -57,31 +57,6 @@ export const LoginPage: React.FC = () => {
   const [securityPin, setSecurityPin] = useState<string>('');
   const [isRegistering, setIsRegistering] = useState<boolean>(false);
   const [signUpError, setSignUpError] = useState<string | null>(null);
-
-  const [savedUsers, setSavedUsers] = useState<Profile[]>([]);
-
-  useEffect(() => {
-    setSavedUsers(getRegisteredUsers());
-  }, []);
-
-  const handleQuickLogin = async (targetUsername: string) => {
-    try {
-      api.switchUser(targetUsername);
-      await refreshPathway();
-      addToast({
-        type: 'success',
-        title: 'Authenticated Successfully',
-        description: `Logged in as @${targetUsername}.`
-      });
-      navigate('/pathway');
-    } catch (err: any) {
-      addToast({
-        type: 'error',
-        title: 'Login Error',
-        description: err.message || 'Could not switch to selected user profile.'
-      });
-    }
-  };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -277,59 +252,9 @@ export const LoginPage: React.FC = () => {
           {/* TAB 1: SIGN IN */}
           {tab === 'signin' && (
             <div className="space-y-5 animate-in fade-in duration-200">
-              
-              {/* Saved Learner Profiles Carousel */}
-              {savedUsers.length > 0 && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-slate-300">Saved Profiles on this Device:</span>
-                    <span className="text-[10px] font-mono text-cyan-400">1-Click Instant Login</span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
-                    {savedUsers.map((u) => {
-                      const isCurrent = currentProfile?.username === u.username;
-                      return (
-                        <button
-                          key={u.username}
-                          type="button"
-                          onClick={() => handleQuickLogin(u.username)}
-                          className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 transition-all ${
-                            isCurrent
-                              ? 'bg-indigo-950/60 border-indigo-500 shadow-glow'
-                              : 'bg-slate-900/60 border-slate-800 hover:border-slate-700 hover:bg-slate-800/80'
-                          }`}
-                        >
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
-                            isCurrent
-                              ? 'bg-gradient-to-tr from-indigo-600 to-cyan-500 text-white'
-                              : 'bg-slate-800 text-slate-300 border border-slate-700'
-                          }`}>
-                            {u.avatar_seed || u.username.substring(0, 2).toUpperCase()}
-                          </div>
-                          <div className="truncate flex-1">
-                            <div className="flex items-center gap-1.5 truncate">
-                              <span className="font-bold text-white text-xs truncate">{u.full_name}</span>
-                              {isCurrent && (
-                                <span className="text-[8px] font-mono px-1 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                                  CURRENT
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-[10px] text-cyan-400 truncate">@{u.username}</p>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              <div className="relative flex items-center justify-center my-3">
-                <div className="border-t border-slate-800 w-full" />
-                <span className="bg-[#0E1322] px-3 text-slate-500 font-mono text-[10px] uppercase">
-                  Or Sign In with Credentials
-                </span>
+              <div className="p-3.5 rounded-2xl bg-indigo-950/30 border border-indigo-500/20 text-xs text-indigo-300 flex items-center gap-2.5">
+                <ShieldCheck className="w-4 h-4 text-cyan-400 shrink-0" />
+                <span>Enter your credentials to access your individualized AI pathway.</span>
               </div>
 
               {/* Form */}
