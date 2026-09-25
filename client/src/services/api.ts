@@ -233,7 +233,7 @@ export function generateStarterPathway(user: Profile, customSkills?: Record<stri
         title: `Modern Reactive State Machines & Optimistic UI`,
         description: 'Fine-grained reactivity, normalized caches, and zero-latency client state synchronization.',
         difficulty: 'beginner',
-        status: 'completed',
+        status: 'in_progress',
         ai_generated_content: {
           overview: `Master client state machines and deterministic mutations for ${user.full_name}.`,
           reading_material: `### State Management Foundations\nState machines prevent impossible UI states by constraining transitions to explicit events.`,
@@ -258,7 +258,7 @@ export function generateStarterPathway(user: Profile, customSkills?: Record<stri
         title: 'High-Performance API Design & PostgreSQL RLS',
         description: 'Architect type-safe REST/GraphQL endpoints with granular Row-Level Security in Postgres.',
         difficulty: 'intermediate',
-        status: 'in_progress',
+        status: 'pending',
         ai_generated_content: {
           overview: `Build robust multitenant APIs with Postgres Row-Level Security.`,
           reading_material: `### Row Level Security\nRLS filters query rows at the database engine level based on authenticated session claims.`,
@@ -761,11 +761,19 @@ export const api = {
         ...bundle.pathway.modules!.slice(1)
       ];
     } else {
-      const mod = bundle.pathway.modules?.find(m => m.id === moduleId);
-      if (mod) mod.status = 'completed';
+      const modIndex = bundle.pathway.modules?.findIndex(m => m.id === moduleId) ?? -1;
+      if (modIndex !== -1 && bundle.pathway.modules) {
+        bundle.pathway.modules[modIndex].status = 'completed';
+        // Unlock next pending module
+        const nextPending = bundle.pathway.modules.find((m, i) => i > modIndex && m.status === 'pending');
+        if (nextPending) {
+          nextPending.status = 'in_progress';
+        }
+      }
       // Boost skill score
       if (bundle.skills.length > 0) {
-        bundle.skills[0].mastery_score = Math.min(100, bundle.skills[0].mastery_score + 5);
+        const skillIdx = Math.min(modIndex >= 0 ? modIndex : 0, bundle.skills.length - 1);
+        bundle.skills[skillIdx].mastery_score = Math.min(100, bundle.skills[skillIdx].mastery_score + 8);
       }
     }
 
@@ -852,11 +860,15 @@ export const api = {
     const username = getActiveUsername();
     const bundle = loadUserBundle(username);
 
-    const completedCount = bundle.pathway.modules?.filter(m => m.status === 'completed').length || 1;
+    const completedCount = bundle.pathway.modules?.filter(m => m.status === 'completed').length || 0;
     const totalCount = bundle.pathway.modules?.length || 4;
     const avgMasteryScore = bundle.skills.length > 0
       ? Math.round(bundle.skills.reduce((a, b) => a + b.mastery_score, 0) / bundle.skills.length)
-      : 78;
+      : 0;
+
+    const avgAssessmentScore = bundle.logs.length > 0
+      ? Math.round(bundle.logs.reduce((acc: number, l: any) => acc + (l.score || 0), 0) / bundle.logs.length)
+      : 0;
 
     return {
       profile: bundle.profile,
@@ -864,12 +876,12 @@ export const api = {
         avgMastery: avgMasteryScore,
         completedModules: completedCount,
         totalModules: totalCount,
-        inProgressModules: bundle.pathway.modules?.filter(m => m.status === 'in_progress').length || 1,
-        remediationCount: bundle.pathway.modules?.filter(m => m.title.includes('Remediation')).length || 0,
-        avgAssessmentScore: 88,
-        velocityMultiplier: '1.25x',
-        hoursInvested: Math.round((completedCount * 3.5 + 2) * 10) / 10,
-        learningStreakDays: 5
+        inProgressModules: bundle.pathway.modules?.filter(m => m.status === 'in_progress').length || (completedCount === 0 ? 1 : 0),
+        remediationCount: bundle.pathway.modules?.filter(m => m.title.includes('Remediation') || m.status === 'remediation').length || 0,
+        avgAssessmentScore,
+        velocityMultiplier: completedCount > 0 ? '1.25x' : '1.00x',
+        hoursInvested: Math.round((completedCount * 3.5) * 10) / 10,
+        learningStreakDays: completedCount > 0 ? Math.min(completedCount + 1, 7) : 0
       },
       skills: bundle.skills.map(s => ({
         skill: s.skill_name.length > 14 ? s.skill_name.substring(0, 12) + '...' : s.skill_name,
@@ -877,21 +889,18 @@ export const api = {
         target: 95,
         fullMark: 100
       })),
-      recentLogs: bundle.logs.length > 0 ? bundle.logs : [
-        {
-          id: 'log-1',
-          module_id: bundle.pathway.modules?.[0]?.id || 'mod_1',
-          score: 95,
-          feedback_notes: `Demonstrated deep conceptual grasp of core systems for ${bundle.profile.full_name}.`,
-          adaptation_triggered: false,
-          created_at: new Date(Date.now() - 3600000).toISOString()
-        }
-      ],
-      aiRecommendations: [
-        `Prioritize ${bundle.skills[bundle.skills.length - 1]?.skill_name || 'Cloud Architecture'}: Complete upcoming lab to unblock advanced containerized deployment patterns.`,
-        `Maintain Quiz Velocity: Your high score trajectory indicates strong readiness for ${bundle.profile.target_role} benchmarks.`,
-        `Strengthen PostgreSQL RLS: Review database isolation policies before tackling enterprise multitenant modules.`
-      ]
+      recentLogs: bundle.logs || [],
+      aiRecommendations: completedCount > 0
+        ? [
+            `Prioritize ${bundle.skills[bundle.skills.length - 1]?.skill_name || 'Distributed Architecture'}: Complete upcoming lab to unblock advanced deployment patterns.`,
+            `Maintain Diagnostic Velocity: Your assessment trajectory indicates strong readiness for ${bundle.profile.target_role} benchmarks.`,
+            `Strengthen Core Topics: Review diagnostic feedback notes to reinforce edge cases.`
+          ]
+        : [
+            `Begin Milestone 1: Launch your first adaptive lesson in the Roadmap to begin tracking dynamic telemetry.`,
+            `Take Interactive Quizzes: Passing your first diagnostic quiz unblocks real-time radar velocity metrics.`,
+            `Explore Interactive Code Sandbox: Test live JavaScript and Gemini transforms with zero configuration.`
+          ]
     };
   },
 

@@ -128,13 +128,13 @@ export const PathwayNode: React.FC<PathwayNodeProps> = ({
             </p>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 pt-2 sm:pt-0 shrink-0">
+          {/* Action Buttons - Responsive stack on mobile, horizontal on tablet/desktop */}
+          <div className="flex items-center gap-2 pt-2 sm:pt-0 w-full sm:w-auto justify-end flex-wrap sm:flex-nowrap shrink-0">
             {/* Copilot shortcut */}
             <button
               onClick={() => openCopilotForModule(module)}
               title="Discuss with AI Copilot"
-              className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-colors"
+              className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-colors shrink-0"
             >
               <Bot className="w-4 h-4 text-cyan-400" />
             </button>
@@ -142,16 +142,16 @@ export const PathwayNode: React.FC<PathwayNodeProps> = ({
             {/* Read Micro-Lesson */}
             <button
               onClick={() => onOpenLesson(module)}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-semibold transition-all shadow-sm"
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 sm:px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-semibold transition-all shadow-sm whitespace-nowrap"
             >
-              <BookOpen className="w-4 h-4 text-indigo-400" />
+              <BookOpen className="w-4 h-4 text-indigo-400 shrink-0" />
               <span>{module.ai_generated_content ? 'Review Lesson' : 'Start Lesson'}</span>
             </button>
 
             {/* Take Diagnostic Quiz */}
             <button
               onClick={() => onOpenQuiz(module)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
                 isCompleted
                   ? 'bg-emerald-950/40 hover:bg-emerald-900/40 text-emerald-300 border border-emerald-700/50'
                   : isRemediation
@@ -159,9 +159,9 @@ export const PathwayNode: React.FC<PathwayNodeProps> = ({
                   : 'bg-gradient-to-r from-indigo-600 to-cyan-500 hover:opacity-90 text-white shadow-glow'
               }`}
             >
-              <Award className="w-4 h-4" />
+              <Award className="w-4 h-4 shrink-0" />
               <span>{isCompleted ? 'Retake Quiz' : 'Take Quiz'}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-3.5 h-3.5 shrink-0" />
             </button>
           </div>
         </div>
