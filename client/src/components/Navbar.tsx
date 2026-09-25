@@ -215,7 +215,10 @@ export const Navbar: React.FC = () => {
                       </span>
                     </div>
                     <p className="text-[11px] text-cyan-400 font-medium truncate">{profile?.target_role}</p>
-                    <p className="text-[10px] text-slate-400 truncate">{profile?.email}</p>
+                    <div className="flex items-center gap-1.5 text-[10px] text-emerald-400 font-mono pt-0.5">
+                      <ShieldCheck className="w-3 h-3" />
+                      <span>Encrypted Database Sync Active</span>
+                    </div>
                   </div>
 
                   {/* Actions */}
