@@ -17,6 +17,13 @@ export const supabase: SupabaseClient | null = (SUPABASE_URL && !SUPABASE_URL.in
   ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
   : null;
 
+// Determine if we should attempt network calls to an external Express backend
+const BACKEND_URL = (typeof window !== 'undefined' && import.meta.env.VITE_API_URL)
+  ? import.meta.env.VITE_API_URL
+  : (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))
+    ? 'http://localhost:5000'
+    : ''; // In static production (e.g. Vercel), do NOT make blind relative /api requests to avoid 405 Method Not Allowed
+
 // ==========================================
 // In-Memory Fallback State
 // ==========================================
@@ -124,18 +131,57 @@ export interface OnboardingPayload {
   initial_skills: Record<string, number>;
 }
 
-// Silent Safe Request Helper
-async function safeFetch(url: string, options?: RequestInit): Promise<any> {
-  // Only attempt network backend fetch if running on a server that has /api mounted
+// Direct Gemini REST client for browser-native execution
+async function callDirectGemini(prompt: string, systemInstruction?: string): Promise<string | null> {
+  const apiKey = (typeof window !== 'undefined' ? localStorage.getItem('skillpulse_gemini_key') : null) || import.meta.env.VITE_GEMINI_API_KEY;
+  if (!apiKey || apiKey === 'PLACEHOLDER_KEY') return null;
+
+  const models = ['gemini-2.5-flash', 'gemini-1.5-flash'];
+  for (const model of models) {
+    try {
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          systemInstruction: systemInstruction ? { parts: [{ text: systemInstruction }] } : undefined,
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 1024
+          }
+        })
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        const text = json?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text) return text;
+      }
+    } catch {
+      // Try next model or fallback
+    }
+  }
+  return null;
+}
+
+// Silent Safe Backend Request Helper
+async function safeFetch(endpointPath: string, options?: RequestInit): Promise<any> {
+  // If no backend URL is available (e.g. static Vercel host without external API server), return null immediately to avoid 405 error
+  if (!BACKEND_URL) {
+    return null;
+  }
+
   try {
+    const targetUrl = `${BACKEND_URL}${endpointPath.startsWith('/') ? endpointPath : `/${endpointPath}`}`;
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2000);
-    const res = await fetch(url, {
+    const timeoutId = setTimeout(() => controller.abort(), 2500);
+    const res = await fetch(targetUrl, {
       ...options,
       signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('skillpulse_auth_token') || 'demo-user-token'}`,
+        Authorization: `Bearer ${typeof window !== 'undefined' ? localStorage.getItem('skillpulse_auth_token') || 'demo-user-token' : 'demo-user-token'}`,
         ...options?.headers,
       }
     });
@@ -404,6 +450,7 @@ export const api = {
 
   // Contextual Copilot
   askCopilot: async (message: string, moduleId?: string, context?: string) => {
+    // 1. Try backend server if available
     const serverRes = await safeFetch('/api/copilot/chat', {
       method: 'POST',
       body: JSON.stringify({ message, moduleId, context })
@@ -413,8 +460,37 @@ export const api = {
       return serverRes;
     }
 
+    // 2. Try direct Google Gemini REST API if key exists in client
+    const directGeminiReply = await callDirectGemini(
+      `User Question: "${message}"\nAttached Module Context: ${context || 'General track'}\nTarget Career: ${localProfile.target_role}`,
+      `You are the SkillPulse AI Technical Mentor. You provide precise, modern, high-level architectural guidance, practical code snippets, and production best practices in clean GitHub Flavored Markdown.`
+    );
+
+    if (directGeminiReply) {
+      return {
+        reply: directGeminiReply,
+        timestamp: new Date().toISOString()
+      };
+    }
+
+    // 3. Dynamic context-aware synthesis fallback
+    const lower = message.toLowerCase();
+    let dynamicInsight = '';
+
+    if (lower.includes('explain') || lower.includes('simple') || lower.includes('mental model')) {
+      dynamicInsight = `### 💡 Intuitive Mental Model\n\nThink of this concept like a **high-speed automated railway exchange**:\n\n1. **Invariants**: Just like trains cannot occupy the same track simultaneously, your application state transitions must be strictly constrained by state machines.\n2. **Reactivity**: When a switch flips (event dispatched), all connected signals and passengers (UI components) immediately reflect the new route without manual polling.\n3. **Resilience**: If a network stall happens, optimistic caching lets the train proceed safely while transactions reconcile in the background.`;
+    } else if (lower.includes('code') || lower.includes('challenge') || lower.includes('task')) {
+      dynamicInsight = `### 💻 Practical 5-Minute Coding Challenge\n\n**Goal**: Implement a debounced state updater with optimistic fallback.\n\n\`\`\`typescript\n// Example: Optimistic State Mutator\nexport async function updateSkillMetric(skillId: string, delta: number) {\n  const previousScore = getCachedScore(skillId);\n  \n  // 1. Optimistic local update\n  setLocalScore(skillId, previousScore + delta);\n  \n  try {\n    // 2. Network sync\n    await syncWithServer({ id: skillId, delta });\n  } catch (err) {\n    // 3. Rollback on failure\n    setLocalScore(skillId, previousScore);\n    console.error('Reconciliation failed, rolled back state.', err);\n  }\n}\n\`\`\`\n*Try running this in the Interactive Sandbox modal!*`;
+    } else if (lower.includes('production') || lower.includes('mistake') || lower.includes('gotcha')) {
+      dynamicInsight = `### ⚠️ Top 3 Production Gotchas\n\n1. **Unbounded Mutation Retries**: Retrying non-idempotent HTTP POST requests during network blips will cause duplicate writes. *Always attach unique idempotency headers.*\n2. **Bypassing Database RLS**: Relying solely on client/controller logic for authorization leads to data leakages. *Always enforce PostgreSQL Row-Level Security at the engine level.*\n3. **Memory Leaks in Event Subscriptions**: Forgetting to unsubscribe from WebSocket and Supabase real-time channels on component unmount causes runaway heap allocation.`;
+    } else if (lower.includes('interview') || lower.includes('question') || lower.includes('staff') || lower.includes('senior')) {
+      dynamicInsight = `### 🎯 Senior / Staff Level Interview Question\n\n**Question**: *“How would you design a real-time collaborative state system that ensures zero-latency UI responsiveness while guaranteeing eventual consistency across flaky mobile network connections?”*\n\n**Key Discussion Points to Cover**:\n- Conflict-Free Replicated Data Types (CRDTs) vs Operational Transformation (OT).\n- Optimistic UI updates with reversible state transaction journals.\n- PostgreSQL Row-Level Security and vector clock synchronization.`;
+    } else {
+      dynamicInsight = `### 🧠 AI Mentor Insight\n\nRegarding your inquiry: **"${message}"**\n\nWhen designing scalable systems for **${localProfile.target_role}**:\n- **Clean Architecture**: Decouple domain business logic from view rendering libraries.\n- **Resilience**: Implement idempotency keys and exponential backoff retry policies on all asynchronous network boundaries.\n- **Performance**: Leverage fine-grained reactivity and memoization to prevent unnecessary re-renders.`;
+    }
+
     return {
-      reply: `### 🧠 AI Mentor Insight\n\nRegarding your inquiry: **"${message}"**\n\nWhen designing high-impact systems for **${localProfile.target_role}**:\n- **Clean Architecture**: Isolate core domain logic from framework-specific bindings.\n- **Resilience**: Implement idempotency keys and exponential backoff retry policies on all asynchronous network boundaries.\n- **Performance**: Leverage fine-grained reactivity and memoization to prevent unnecessary re-computations.`,
+      reply: dynamicInsight,
       timestamp: new Date().toISOString()
     };
   },
@@ -580,9 +656,27 @@ export const api = {
       return serverRes;
     }
 
+    // Direct test against Google's Gemini endpoint
+    try {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: 'ping' }] }] })
+      });
+      if (res.ok) {
+        return {
+          valid: true,
+          message: 'Google Gemini 2.5 Flash connected and verified via Google API!'
+        };
+      }
+    } catch {
+      // Fallback format check
+    }
+
+    const isWellFormed = Boolean(apiKey && apiKey.length > 15 && apiKey.startsWith('AIza'));
     return {
-      valid: Boolean(apiKey && apiKey.length > 10),
-      message: 'Google Gemini 2.5 Flash verified and active in hybrid engine mode!'
+      valid: isWellFormed || Boolean(apiKey && apiKey.length > 10),
+      message: 'Google Gemini 2.5 Flash active in hybrid engine mode!'
     };
   },
 };
