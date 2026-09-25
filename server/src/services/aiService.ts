@@ -260,16 +260,18 @@ export async function generateCopilotResponseAI(
   }
 ): Promise<string> {
   const prompt = `
+High-Precision Directive: Provide mathematically exact explanations, Big-O algorithmic complexity, verified production code patterns (Python, C++, Java, Rust, Go, SQL, TypeScript), and zero-hallucination syntax.
+
 User Question / Request: "${userMessage}"
 
 Current Learning Context:
 - Active Module: ${context?.moduleTitle || 'General Career Roadmap'}
 - Difficulty Level: ${context?.difficulty || 'Intermediate'}
-- Target Role: ${context?.targetRole || 'Full-Stack Software Engineer'}
+- Target Role: ${context?.targetRole || 'Principal / Staff Software Engineer'}
 - Last Assessment Performance: ${context?.lastQuizScore !== undefined ? `${context?.lastQuizScore}%` : 'Not assessed yet'}
 
-Respond as SkillPulse AI Copilot—a brilliant, supportive, and succinct technical mentor.
-Provide clear explanations, breakdown tricky parts with code or step-by-step logic, and suggest next action steps.
+Respond as SkillPulse AI Copilot—a high-precision principal technical mentor.
+Provide clear explanations, breakdown tricky parts with verified code or step-by-step logic, address edge cases and security implications, and suggest next action steps.
 Use Markdown formatting for code, lists, and emphasis.
 `;
 
@@ -281,7 +283,7 @@ Use Markdown formatting for code, lists, and emphasis.
           { role: 'user', parts: [{ text: `${SYSTEM_PROMPT}\n\n${prompt}` }] }
         ],
         config: {
-          temperature: 0.4
+          temperature: 0.2
         }
       });
 

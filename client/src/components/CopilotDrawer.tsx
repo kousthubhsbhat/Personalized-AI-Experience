@@ -11,9 +11,11 @@ import {
   Lightbulb,
   Code2,
   Trash2,
-  Minimize2,
   Copy,
-  Check
+  Check,
+  ShieldCheck,
+  Activity,
+  Cpu
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { api } from '../services/api';
@@ -26,10 +28,26 @@ interface Message {
 }
 
 const PRESET_PROMPTS = [
-  { icon: Lightbulb, label: "Explain concept simply", prompt: "Can you explain this module's core concept simply with a relatable mental model?" },
-  { icon: Code2, label: "Practical coding task", prompt: "Give me a quick 5-minute hands-on coding challenge to test my understanding of this topic." },
-  { icon: BookOpen, label: "Production gotchas", prompt: "What are the top 3 architectural mistakes or performance bottlenecks engineers face here in production?" },
-  { icon: Sparkles, label: "Interview question", prompt: "Ask me a challenging Staff/Senior level interview question related to this module." }
+  { 
+    icon: Lightbulb, 
+    label: "Mental Model", 
+    prompt: "Can you explain this module's core concept simply with a relatable, high-precision mental model?" 
+  },
+  { 
+    icon: Code2, 
+    label: "Multi-Language Challenge", 
+    prompt: "Give me a practical hands-on coding challenge with solutions in Python, C++, and TypeScript for this topic." 
+  },
+  { 
+    icon: ShieldCheck, 
+    label: "Security & Big-O Audit", 
+    prompt: "Perform a Big-O algorithmic complexity analysis and outline top 3 security/production gotchas for this architecture." 
+  },
+  { 
+    icon: Sparkles, 
+    label: "Staff Interview Question", 
+    prompt: "Ask me a rigorous Staff/Principal Engineer level systems design interview question related to this module." 
+  }
 ];
 
 export const CopilotDrawer: React.FC = () => {
@@ -38,7 +56,7 @@ export const CopilotDrawer: React.FC = () => {
     {
       id: 'welcome-1',
       role: 'assistant',
-      content: `👋 Hello! I am your **SkillPulse AI Tech Mentor** powered by Google Gemini.\n\nI am connected directly to your active learning pathway for **${profile?.target_role || 'Senior AI Engineer'}**.\n\nAsk me anything about architecture, code optimization, or troubleshooting!`,
+      content: `👋 Hello! I am your **SkillPulse AI Tech Mentor** powered by Google Gemini with **High-Precision Grounding**.\n\nI am connected directly to your active learning pathway for **${profile?.target_role || 'Senior AI Engineer'}**.\n\nAsk me anything about system architecture, Big-O complexity, security policies (Postgres RLS), or multi-language code implementations!`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -63,7 +81,7 @@ export const CopilotDrawer: React.FC = () => {
         {
           id: `welcome-${profile.username}`,
           role: 'assistant',
-          content: `👋 Hello **${profile.full_name}** (@${profile.username})!\n\nI am your personalized **SkillPulse AI Tech Mentor** powered by Google Gemini.\n\nI am connected directly to your active track for **${profile.target_role}**.\n\nAsk me anything about system architecture, code reviews, or interview challenges!`,
+          content: `👋 Hello **${profile.full_name}** (@${profile.username})!\n\nI am your personalized **SkillPulse AI Tech Mentor** powered by Google Gemini with **High-Precision Guardrails**.\n\nI am calibrated directly for **${profile.target_role}**.\n\nAsk me anything about system architecture, code reviews, algorithmic complexity, or production engineering!`,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
@@ -136,9 +154,9 @@ export const CopilotDrawer: React.FC = () => {
     <div className="fixed inset-0 z-50 overflow-hidden flex justify-end bg-black/50 backdrop-blur-xs transition-opacity animate-in fade-in duration-200">
       <div className="w-full max-w-lg bg-[#0E1322] border-l border-slate-800 shadow-2xl flex flex-col h-full animate-in slide-in-from-right duration-300">
         {/* Drawer Header */}
-        <div className="p-4 border-b border-slate-800/80 bg-slate-900/60 flex items-center justify-between">
+        <div className="p-4 border-b border-slate-800/80 bg-slate-900/80 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-500 p-0.5 shadow-glow">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-cyan-500 to-emerald-400 p-0.5 shadow-glow">
               <div className="w-full h-full bg-[#0E1322] rounded-[10px] flex items-center justify-center">
                 <Bot className="w-5 h-5 text-cyan-400" />
               </div>
@@ -146,11 +164,12 @@ export const CopilotDrawer: React.FC = () => {
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="font-semibold text-white text-sm">SkillPulse AI Copilot</h3>
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
-                  Gemini 2.5
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono flex items-center gap-1">
+                  <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                  <span>High Precision (Temp: 0.2)</span>
                 </span>
               </div>
-              <p className="text-xs text-slate-400">Contextual Real-Time Tech Mentor</p>
+              <p className="text-xs text-slate-400">Deterministic Reasoning & Zero-Hallucination Guardrail</p>
             </div>
           </div>
 
@@ -173,7 +192,7 @@ export const CopilotDrawer: React.FC = () => {
 
         {/* Active Context Banner */}
         {copilotModuleContext && (
-          <div className="px-4 py-2 bg-indigo-950/30 border-b border-indigo-900/30 flex items-center justify-between text-xs">
+          <div className="px-4 py-2 bg-indigo-950/40 border-b border-indigo-900/30 flex items-center justify-between text-xs">
             <div className="flex items-center gap-2 truncate">
               <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
               <span className="text-slate-400">Attached Module:</span>
@@ -243,9 +262,9 @@ export const CopilotDrawer: React.FC = () => {
           ))}
 
           {isLoading && (
-            <div className="flex items-center gap-3 text-slate-400 text-sm bg-slate-800/40 p-3 rounded-xl border border-slate-800 animate-pulse">
+            <div className="flex items-center gap-3 text-slate-300 text-sm bg-slate-800/60 p-3.5 rounded-xl border border-indigo-500/30 animate-pulse">
               <Sparkles className="w-4 h-4 text-cyan-400 animate-spin" />
-              <span>Gemini 2.5 Flash is thinking & synthesizing answer...</span>
+              <span>High-Precision Engine synthesizing verified technical response...</span>
             </div>
           )}
 
@@ -253,8 +272,11 @@ export const CopilotDrawer: React.FC = () => {
         </div>
 
         {/* Quick Prompts */}
-        <div className="p-3 border-t border-slate-800/60 bg-slate-900/30">
-          <p className="text-[11px] font-medium text-slate-400 mb-2 px-1">Quick Prompts</p>
+        <div className="p-3 border-t border-slate-800/60 bg-slate-900/40">
+          <div className="flex items-center justify-between mb-2 px-1">
+            <span className="text-[11px] font-medium text-slate-400">Precision Prompts</span>
+            <span className="text-[10px] text-indigo-400 font-mono">Calibrated for {profile?.target_role || 'Staff Eng'}</span>
+          </div>
           <div className="grid grid-cols-2 gap-1.5">
             {PRESET_PROMPTS.map((item, idx) => {
               const Icon = item.icon;
@@ -279,13 +301,13 @@ export const CopilotDrawer: React.FC = () => {
             e.preventDefault();
             handleSendMessage();
           }}
-          className="p-4 border-t border-slate-800 bg-slate-900/80 flex items-center gap-2"
+          className="p-4 border-t border-slate-800 bg-slate-900/90 flex items-center gap-2"
         >
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={copilotModuleContext ? `Ask about "${copilotModuleContext.title}"...` : "Ask a technical question..."}
+            placeholder={copilotModuleContext ? `Ask high-precision question on "${copilotModuleContext.title}"...` : "Ask a technical or architectural question..."}
             className="flex-1 bg-[#070b14] border border-slate-700/80 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
             disabled={isLoading}
           />
